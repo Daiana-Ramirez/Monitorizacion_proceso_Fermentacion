@@ -4,3 +4,5 @@
 *.pem
 *.secret
 __pycache__/
+*.pyc
+venv/
