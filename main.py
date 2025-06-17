@@ -1,6 +1,6 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 from fermentacion import get_hongo_id, get_registros_fermentacion, get_detalles_por_fermentacion
-
 from dotenv import load_dotenv
 import os
 from twilio.rest import Client
@@ -36,8 +36,21 @@ def obtener_datos(nombre_hongo: str):
         "procesos": resultados
     }
 
+# ✅ Versión 1: acepta mensaje como parámetro de query
 @app.post("/enviar-whatsapp/")
-def enviar_whatsapp(mensaje: str):
+def enviar_whatsapp_query(mensaje: str):
+    return enviar_mensaje(mensaje)
+
+# ✅ Versión 2: acepta mensaje como JSON (cuerpo del POST)
+class Mensaje(BaseModel):
+    mensaje: str
+
+@app.post("/enviar-whatsapp-json/")
+def enviar_whatsapp_json(payload: Mensaje):
+    return enviar_mensaje(payload.mensaje)
+
+# 🔁 Función reutilizada por ambos endpoints
+def enviar_mensaje(mensaje: str):
     account_sid = os.getenv("TWILIO_ACCOUNT_SID")
     auth_token = os.getenv("TWILIO_AUTH_TOKEN")
     from_whatsapp = os.getenv("TWILIO_PHONE_NUMBER")
@@ -57,3 +70,4 @@ def enviar_whatsapp(mensaje: str):
         return {"estado": "Mensaje enviado", "sid": message.sid}
     except Exception as e:
         return {"error": str(e)}
+
